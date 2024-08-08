@@ -16,6 +16,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+
+
 
 class admin_contr extends Controller
 {
@@ -98,11 +101,11 @@ class admin_contr extends Controller
 
     public function validation_Change(Request $request, User $user)
     {
-        // Logique pour changer la validation
+       
         $user->uservalid = $user->uservalid === 'v' ? 'nv' : 'v';
         $user->save();
     
-        // Réponse JSON avec la nouvelle validation
+       
         return response()->json(['validation' => $user->uservalid]);
     }
     
@@ -116,23 +119,35 @@ class admin_contr extends Controller
 
     function client_information(Request $request,$id){
       
-        $client = Client::where('user_id', $id)->latest()->first();
-        
+        $client = Client::where('user_id', $id)
+        ->whereNull('state') 
+        ->first();
+
+        $unassignedClients = client::whereNull('state') ->whereNull('user_id')->get();
         if ($client) {
-            return view('admin_client',compact('id','client'));
+            return view('admin_client',compact('id','client','unassignedClients'));
 
                      }
          else
-            {return view('admin_client',compact('id'));}
+            {   
+                
+                return view('admin_client',compact('id','unassignedClients'));}
         
     }
 
 
 
     function add_update_client(Request $request,$id){
-       
- /*      $client = Client::where('user_id', $id)->first();
 
+   $client = Client::where('user_id', $id)->whereNull('state')->first();
+   if ($client) {
+    $client->state = 'deleted';
+    $client->save();
+
+   }
+
+
+ /*  
         if ($client) {
           
             $client->name = $request->name;
@@ -220,10 +235,10 @@ class admin_contr extends Controller
                                        ->get();
                 }
                 else{
-                    $invoice = invoice::select('id', 'date','created_at', 'due_date','status',DB::raw("null as invoice_number"), DB::raw("'received' as type"))
+                    $invoice = invoice::select('id', 'date','created_at','payment_date', 'due_date','status',DB::raw("null as invoice_number"), DB::raw("'received' as type"))
                     ->where('client_id', $id);
                 
-                    $received_invoice = received_invoice::select('id', 'date','created_at', 'due_date','status','invoice_number', DB::raw("'sent' as type"))
+                    $received_invoice = received_invoice::select('id', 'date','created_at','payment_date', 'due_date','status','invoice_number', DB::raw("'sent' as type"))
                     ->where('client_id', $id);
                   
 
@@ -246,7 +261,19 @@ class admin_contr extends Controller
 public function search_client_name(Request $request)
 {
     $query = $request->input('query');
-    $clients = Client::where('name', 'like', "%{$query}%")->get();
+
+    $idclientinvoice = DB::table('invoices')->pluck('client_id');
+    $receivedInvoiceClientId = DB::table('received_invoices')->pluck('client_id');
+    $idclientdevis = DB::table('devis')->pluck('client_id');
+    $idclientdevisrecus = DB::table('devis_recus')->pluck('client_id');
+
+    $allClientIds = $idclientinvoice->merge($receivedInvoiceClientId)
+    ->merge($idclientdevis)
+    ->merge($idclientdevisrecus)
+    ->unique();
+
+
+    $clients = Client::whereIn('id', $allClientIds)->where('name', 'like', "%{$query}%")->get();
     if ($clients->isEmpty()) {
         return response()->json(['message' => 'No clients found.']);
     }
@@ -308,12 +335,45 @@ function list_client_devis(Request $request,$id){
     }
     
 
+                                                              
 
+ public function addClientAjax(Request $request)
+    {
+        $client = Client::create([
+            'name' => $request->name,
+            'address' => $request->address,
+            'tel' => $request->tel,
+            'user_id' => null,
+        ]);
+       
+        return response()->json([
+            'id' => $client->id,
+            'name' => $client->name,
+            'address' =>$client->address,
+        ]);
+    }
 
+    function link_user_client(Request $request,$id){
+       $id_client= $request->unassigned_client_id;
+       if(empty($id_client)){   return redirect()->back(); }
+       else{
+            $previousClient = Client::where('user_id', $id)->whereNull('state')->first();
+                if ($previousClient) {
+                    $previousClient->state = 'deleted';
+                    $previousClient->save();
 
+                }
+
+            $client = Client::find($id_client);
+            $client->user_id=$id;
+            $client->save();
+            return redirect()->back();
+       }    
+   
+    }
 
 
 }
 
-    
+
 

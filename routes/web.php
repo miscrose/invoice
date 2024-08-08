@@ -30,7 +30,8 @@ Route::get('/setting',[profile_contr::class,'setting'] )->middleware('auth')->na
 
 Route::post('/setting.update',[profile_contr::class,'update'] )->name('setting.update');
 
-Route::match(['get', 'post'],'/admin_list_acc',[admin_contr::class,'admin_list_acc'])->name('admin_list_acc');
+//Route::match(['get', 'post'],'/admin_list_acc',[admin_contr::class,'admin_list_acc'])->name('admin_list_acc');
+Route::get('/admin_list_acc',[admin_contr::class,'admin_list_acc'])->name('admin_list_acc');
 Route::post('/admin_list_acc/search',[admin_contr::class,'search_users_email'])->name('search_users_email');
 
 Route::post('/account/update/{user}',[admin_contr::class,'account_update'])->name('account_update');
@@ -38,14 +39,15 @@ Route::post('/account/do_update/{user}',[admin_contr::class,'do_update'])->name(
 
 Route::post('/delete_account/{user}',[admin_contr::class,'delete_account'])->name('delete_account');
 
-Route::match(['get', 'post'],'/validation_list',[admin_contr::class,'validation_list'])->name('validation_list');
+//Route::match(['get', 'post'],'/validation_list',[admin_contr::class,'validation_list'])->name('validation_list');
+Route::get('/validation_list',[admin_contr::class,'validation_list'])->name('validation_list');
 Route::post('/validation/{user}',[admin_contr::class,'validation_acc'])->name('validation_acc');
 Route::post('/validation_change/{user}',[admin_contr::class,'validation_change'])->name('validation_change');
 
 Route::match(['get', 'post'],'/information',[profile_contr::class,'information'])->name('information');
 Route::post('/add_update_information',[profile_contr::class,'add_update_information'])->name('add_update_information');
 
-Route::post('/client_information/{id}',[admin_contr::class,'client_information'])->name('admin_client');
+Route::match(['get', 'post'],'/client_information/{id}',[admin_contr::class,'client_information'])->middleware('admin')->name('admin_client');
 Route::post('/add_update_client/{id}',[admin_contr::class,'add_update_client'])->name('add_update_client');
 
 Route::match(['get', 'post'],'/invoice', [invoice_contr::class, 'invoice_form'])->middleware(['auth', 'admin'])->name('invoice_form');
@@ -57,29 +59,42 @@ Route::post('/company_info_save', [admin_contr::class, 'company_info_save'])->na
 Route::match(['get', 'post'],'/invoice_client', [invoice_contr::class, 'invoice_form_client'])->name('invoice_form_client');
 Route::post('/save_invoice_client', [invoice_contr::class, 'saveInvoiceClient'])->name('save_invoice_client');
 
-Route::get('/detail_invoice/{type}/{id}',[invoice_contr::class,'detail_invoice'])->name('detail_invoice');
+Route::post('/detail_invoice/{type}/{id}',[invoice_contr::class,'detail_invoice'])->name('detail_invoice');
 
 
 Route::get('/sort_invoice',[home_contr::class,'sort_invoice'])->middleware('auth')->name('sort_invoice');
 
 
-Route::get('/list_client_invoice/{id}',[admin_contr::class,'list_client_invoice'])->name('list_client_invoice');
-Route::get('/sort_client_invoice',[admin_contr::class,'sort_client_invoice'])->middleware('auth')->name('sort_client_invoice');
+Route::get('/list_client_invoice/{id}',[admin_contr::class,'list_client_invoice'])->middleware('admin')->name('list_client_invoice');
+Route::get('/sort_client_invoice',[admin_contr::class,'sort_client_invoice'])->middleware('admin')->name('sort_client_invoice');
 
 
-Route::match(['get', 'post'],'/devis', [devis_contr::class, 'devis_form'])->middleware(['auth', 'admin'])->name('devis_form');
-Route::post('/save_devis_admin', [devis_contr::class, 'save_devis_admin'])->name('save_devis_admin');
+Route::match(['get', 'post'],'/devis', [devis_contr::class, 'devis_form'])->middleware('admin')->name('devis_form');
+Route::post('/save_devis_admin', [devis_contr::class, 'save_devis_admin'])->middleware('admin')->name('save_devis_admin');
 
 Route::match(['get', 'post'],'/devis_client', [devis_contr::class, 'devis_form_client'])->name('devis_form_client');
 Route::post('/save_devis_client', [devis_contr::class, 'save_devis_client'])->name('save_devis_client');
 
 
 
-Route::get('/list_client_devis/{id}',[admin_contr::class,'list_client_devis'])->name('list_client_devis');
-Route::get('/sort_client_devis',[admin_contr::class,'sort_client_devis'])->middleware('auth')->name('/sort_client_devis');
+Route::get('/list_client_devis/{id}',[admin_contr::class,'list_client_devis'])->middleware('admin')->name('list_client_devis');
+Route::get('/sort_client_devis',[admin_contr::class,'sort_client_devis'])->middleware('admin')->name('/sort_client_devis');
 
-Route::get('/detail_devis/{type}/{id}',[devis_contr::class,'detail_devis'])->name('detail_devis');
+Route::post('/detail_devis/{type}/{id}',[devis_contr::class,'detail_devis'])->name('detail_devis');
 
 Route::post('/search_client_name',[admin_contr::class,'search_client_name'])->name('search_client_name');
 
+Route::get('/quote_list',[devis_contr::class,'quote_list'])->name('quote_list');
+Route::get('/sort_devis',[home_contr::class,'sort_devis'])->name('sort_devis');
 
+
+
+Route::post('/add_client_ajax', [admin_contr::class, 'addClientAjax'])->name('add_client_ajax');
+
+Route::post('/link_user_client/{id}', [admin_contr::class, 'link_user_client'])->name('link_user_client');
+
+Route::get('/dashboard',[home_contr::class,'dashboard'])->name('dashboard');
+
+
+Route::post('/paye_change_admin', [invoice_contr::class, 'paye_change_admin'])->name('paye_change_admin');
+Route::post('/paye_change_client', [invoice_contr::class, 'paye_change_client'])->name('paye_change_client');

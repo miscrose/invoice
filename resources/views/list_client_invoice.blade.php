@@ -1,4 +1,4 @@
-@extends('template')
+@extends('layout')
 
 @section('contenu')
     
@@ -30,6 +30,53 @@
             var filter = this.value;
             fetchInvoices(filter);
         });
+
+   
+
+        $(document).on('click', '.btn-mark-paid', function() {
+       
+                var invoiceId = $(this).data('id');
+     
+      
+                $('#paymentForm').on('submit', function(event) {
+                   var     date=$('#payment_date').val()
+                    event.preventDefault(); // Prevent default form submission
+            var formData = {
+                          id: invoiceId,
+                         date: date,
+
+                         _token: '{{ csrf_token() }}'
+                              };
+                              $.ajax({
+                url: "{{ route('paye_change_admin') }}", // Adjust the route as necessary
+                method: 'POST',
+                data: formData,
+                success: function(response) {   
+                    var paymentDate = response.paymentDate;  
+                    $('#paymentModal').modal('hide');
+                    $('.modal-backdrop').remove(); 
+                    var updatedRow = ` <td class="text-nowrap">
+                                     paid (${paymentDate})
+                              </td>`;
+
+                        $(`td[data-id="received-${invoiceId}"]`).replaceWith(updatedRow);
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                }
+            });      
+ });
+
+ document.querySelector('body').addEventListener('hidden.bs.modal', (event) => {
+   
+    document.querySelector('body').removeAttribute('style');
+ });    
+
+});
+
+
+
+
     });
     function fetchInvoices(filter) {
     $.ajax({

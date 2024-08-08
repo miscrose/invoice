@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class invoice_contr extends Controller
 {
     function invoice_form(){
-       
+       /*
         $latestClientsData=Client::select('user_id', DB::raw('MAX(created_at) as latest_created_at'))
                     ->groupby('user_id')->get();
     
@@ -28,6 +28,9 @@ class invoice_contr extends Controller
         $client = Client::whereIn('user_id', $userIds)
                        ->whereIn('created_at', $latestCreatedAts)
                        ->get();
+*/
+
+        $client=client::wherenull('state')->get();
 
         $companyinfo=companyinfo::all();
         return view('invoice_form',compact('client','companyinfo'));
@@ -57,7 +60,7 @@ class invoice_contr extends Controller
             $invoice->client_id = $request->client_id;
             $invoice->status = $request->status;
             $invoice->companyinfo_id = $request->company_id;
-    
+            $invoice->payment_date = $request->payment_date;
             $invoice->save();
 
             foreach ($descriptions as $key => $description) {
@@ -103,7 +106,7 @@ class invoice_contr extends Controller
         if(isset($descriptions)&& isset($quantities )&& isset( $unit_prices )&&isset($tvas )){
 
                         $user_id = auth()->user()->id;
-                        $client = client::where('user_id', $user_id)->first();
+                        $client = client::where('user_id', $user_id)->wherenull('state')->first();
                         if (!$client) {
                             return redirect()->back()->with('error', 'Client not found.');
                         }
@@ -194,4 +197,35 @@ function detail_invoice(Request $request,$type,$id)
 }
 
 
+
+function paye_change_admin(Request $request){
+    $invoice = Invoice::find($request->id);
+    if ($invoice) { $invoice->payment_date = $request->date;
+        $invoice->status = 'paid'; 
+        $invoice->save();
+        return response()->json([
+            
+            'paymentDate' => $invoice->payment_date 
+        ]);
+    } else {
+      
+        return response()->json(['error' => 'Invoice not found'], 404);
+    }
+}
+
+
+function paye_change_client(Request $request){
+    $invoice = received_invoice::find($request->id);
+    if ($invoice) { $invoice->payment_date = $request->date;
+        $invoice->status = 'paid'; 
+        $invoice->save();
+        return response()->json([
+            
+            'paymentDate' => $invoice->payment_date 
+        ]);
+    } else {
+      
+        return response()->json(['error' => 'Invoice not found'], 404);
+    }
+}
 }

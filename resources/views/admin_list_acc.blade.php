@@ -1,4 +1,4 @@
-@extends('template')
+@extends('layout')
 
 @section('contenu')
 
@@ -14,61 +14,82 @@
     </form>
   </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th scope="col">id</th>
-            <th scope="col">name</th>
-            <th scope="col">email</th>
-            <th scope="col">validation</th>
-            <th scope="col">client information</th>
-            <th scope="col"></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach ($users as $item)
-        <tr>
-            <th scope="row">{{ $item->id }}</th>
-            <td>{{ $item->name }}</td>
-            <td>{{ $item->email }}</td>
-            <td>
-                <span class="validation">{{ $item->uservalid }}</span> 
+<div class="table-responsive scrollbar">
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Validation</th>
+                <th scope="col">Client Information</th>
+                <th class="text-end" scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($users as $item)
+            <tr>
+                <th scope="row">{{ $item->id }}</th>
+                <td>{{ $item->name }}</td>
+                <td>{{ $item->email }}</td>
+                <td>
+                    <span class="validation">{{ $item->uservalid }}</span> 
+                    <form class="toggleForm" action="{{ route('validation_change', ['user'=> $item->id]) }}" method="POST" style="display: inline-block;">
+                        @csrf
+                        <div class="toggleButton toggle-button" id="{{$item->id}}">
+                            <div class="toggle-circle"></div>
+                        </div>
+                    </form>
+                </td>
+                <td>
+                    <form action="{{ route('admin_client', ['id'=> $item->id]) }}" method="POST" style="display: inline-block;">
+                        @csrf
+                        <button type="submit" class="btn btn-info btn-sm">Client Info</button>
+                    </form>
+                </td>
+                <td class="text-end">
+                    <div>
+                        <form action="{{ route('account_update', ['user'=> $item->id]) }}" method="POST" style="display: inline-block;">
+                            @csrf
+                            <button type="submit" class="btn btn-info btn-sm">Update</button>
+                        </form>
+                      <!-- Bouton de Suppression -->
+                        <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteConfirmModal" data-action="{{ route('delete_account', ['user' => $item->id]) }}">
+                            Delete
+                        </button>
 
-                <form class="toggleForm" action="{{ route('validation_change', ['user'=> $item->id]) }}" method="POST">
-                    @csrf
-                    <div class="toggleButton toggle-button" id="{{$item->id}}">
-                        <div class="toggle-circle" ></div>
                     </div>
-                </form>
-            </td>
-
-            <td>
-                <form action="{{ route('admin_client',['id'=> $item->id])  }}" method="POST" style="display: inline-block;">
-                    @csrf
-                    <button type="submit" class="btn btn-info btn-sm mx-4">client info</button>
-                </form>
-                
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 
 
-            </td>
-            <td class="col-3">
-                <form action="{{ route('account_update', ['user'=> $item->id]) }}" method="POST" style="display: inline-block;">
-                    @csrf
-                    <button type="submit" class="btn btn-info btn-sm mx-4">Update</button>
-                </form>
-                
+<!-- Modal de Confirmation -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this item? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 <form action="{{ route('delete_account', ['user'=> $item->id]) }}" method="POST" style="display: inline-block;">
                     @csrf
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                 </form>
-            </td>
-        </tr>
-        @endforeach
-        
-    </tbody>
-</table>
-
-
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <script>

@@ -1,14 +1,37 @@
-@extends('template')
+@extends('layout')
 
 @section('contenu')
 
 
 
-<div class="container-fluid">
+
     <div class="row justify-content-center mt-5">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">client {{$id}} information    </div>
+                <form action="{{route('link_user_client', ['id' => $id])}}" method="POST">
+                    @csrf
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-9">
+                                <select id="unassigned_clients" name="unassigned_client_id" class="form-control">
+                                    <option value="">-- Sélectionner un client --</option>
+                                    @foreach ($unassignedClients as $unassignedClient)
+                                        <option value="{{ $unassignedClient->id }}">{{ $unassignedClient->name }} / {{ $unassignedClient->address }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary">{{ isset($client) ? 'Update' : 'Add' }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+
+
+
+                
                 <form action="{{ route('add_update_client', ['id' => $id]) }}" method="POST">
                     @csrf
                    
@@ -33,7 +56,6 @@
 </div>
 
 
- 
 
 @endsection
 

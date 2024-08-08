@@ -15,7 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 class devis_contr extends Controller
 {
     function devis_form(){
-       
+       /*
         $latestClientsData=client::select('user_id', DB::raw('MAX(created_at) as latest_created_at'))
                     ->groupby('user_id')->get();
     
@@ -24,8 +24,9 @@ class devis_contr extends Controller
 
         $client = Client::whereIn('user_id', $userIds)
                        ->whereIn('created_at', $latestCreatedAts)
-                       ->get();
-
+                       ->get();*/
+                       
+        $client=client::wherenull('state')->get();
         $companyinfo=companyinfo::all();
         return view('devis_form',compact('client','companyinfo'));
     }
@@ -101,7 +102,7 @@ class devis_contr extends Controller
         if(isset($descriptions)&& isset($quantities )&& isset( $unit_prices )&&isset($tvas )){
 
                         $user_id = auth()->user()->id;
-                        $client = client::where('user_id', $user_id)->first();
+                        $client = client::where('user_id', $user_id)->wherenull('state')->first();
                         if (!$client) {
                             return redirect()->back()->with('error', 'Client not found.');
                         }
@@ -137,7 +138,7 @@ class devis_contr extends Controller
 
 function detail_devis(Request $request,$type,$id)
 {   
-    
+   
     if($type=='sent'){
         $devis=devis_recu::findOrfail($id);
         $devis_item = devis_recu_item::where('devis_recu_id', $devis->id)->get();
@@ -191,12 +192,8 @@ function detail_devis(Request $request,$type,$id)
 }
 
 
-
-function test(){
-
-    return view ('login');
+function quote_list(){
+    return view('quote_home');
 }
-
-
 
 }

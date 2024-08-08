@@ -1,4 +1,4 @@
-@extends('template')
+@extends('layout')
 
 @section('contenu')
 
@@ -6,7 +6,7 @@
     <div class="row justify-content-center mt-5">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header">Create </div>
+                <div class="card-header">Create quote</div>
                 <div class="card-body">
                     @if(session('success'))
                         <div class="alert alert-success">
@@ -82,8 +82,10 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+@endsection
+@section('script')
+    
+
 <script>
     $(document).ready(function() {
         

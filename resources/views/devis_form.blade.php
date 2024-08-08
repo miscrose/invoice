@@ -1,5 +1,5 @@
 
-@extends('template')
+@extends('layout')
 
 @section('contenu')
 
@@ -29,6 +29,8 @@
                                     <option value="{{ $item->id }}">{{ $item->name }}</option>
                                 @endforeach
                             </select>
+                            <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#addClientModal">Add Client</button>
+  
                         </div>
 
                         <div class="mb-3">
@@ -88,8 +90,40 @@
         </div>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<div class="modal fade" id="addClientModal" tabindex="-1" aria-labelledby="addClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addClientModalLabel">Add Client</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addClientForm">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="client_name" class="form-label">Client Name</label>
+                        <input type="text" class="form-control" id="client_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="client_address" class="form-label">Address</label>
+                        <input type="text" class="form-control" id="client_address" name="address" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="client_tel" class="form-label">Telephone</label>
+                        <input type="text" class="form-control" id="client_tel" name="tel" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Client</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('script')
+    
+
 <script>
     $(document).ready(function() {
         $('#client_id').select2({
@@ -132,5 +166,42 @@
             $(this).closest('tr').remove();
         });
     });
+
+    $('#addClientForm').on('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            var formData = {
+        name: $('#client_name').val(),
+        address: $('#client_address').val(),
+        tel: $('#client_tel').val(),
+        _token: '{{ csrf_token() }}'
+    };
+            $.ajax({
+                url: "{{ route('add_client_ajax') }}", // Adjust the route as necessary
+                method: 'POST',
+                data: formData,
+                success: function(response) {    // Add the new client to the select
+                    $('#addClientModal').modal('hide');
+                    $('.modal-backdrop').remove(); 
+        
+    
+            $('#client_id').append(new Option(response.name + ' / ' + response.address, response.id));
+                        
+       
+            $('#addClientModal').modal('hide');
+            
+            // Optionally, select the new client in the select
+            $('#client_id').val(response.id).trigger('change');
+
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                }
+            });
+        });
+        document.querySelector('body').addEventListener('hidden.bs.modal', (event) => {
+    // remove the overflow: hidden and padding-right: 15px
+    document.querySelector('body').removeAttribute('style');
+ });
+    
 </script>
 @endsection

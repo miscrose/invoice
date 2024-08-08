@@ -50,7 +50,7 @@ class profile_contr extends Controller
     function information(Request $request){
 
         $id=Auth::user()->id;
-        $client = Client::where('user_id', $id)->latest()->first();
+        $client = Client::where('user_id', $id)->whereNull('state')->first();
         if ($client) {
             return view('client_information',compact('client'));
 
@@ -67,6 +67,13 @@ class profile_contr extends Controller
 
     function add_update_information(Request $request){
         $id=Auth::user()->id;
+        $client = Client::where('user_id', $id)->whereNull('state')->first();
+        if ($client) {
+            $client->state = 'deleted';
+            $client->save();
+        
+           }
+
           /*
         $client = client::where('user_id', $id)->first();
      

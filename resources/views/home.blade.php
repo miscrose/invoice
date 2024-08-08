@@ -1,37 +1,22 @@
 @extends('layout')
 
-@section('contenu')
-
+@section('search')
 @if (Auth::user()->usertype=='admin')
-<form action="{{route('invoice_form')}}" method="POST"  >
-  @csrf
-  <button class="btn btn-success col-2 float-end mx-2" type="submit" >add invoice</button>
 
+<form id="searchForm" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+    <div class="input-group">
+        <input id="searchInput" class="form-control bg-light border-0 small" type="text" placeholder="Search by name..." aria-label="Search" aria-describedby="basic-addon2">
+     
+    </div>
 </form>
 
-
-<div class="container d-flex justify-content-center">
-    <form id="searchForm" class="d-flex w-auto mx-auto">
-      <input id="searchInput" class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-    
-    </form>
-</div>
-@else
-
-
-<form action="{{route('invoice_form_client')}}" method="POST"  >
-  @csrf
-  <button class="btn btn-success col-2 float-end mx-2" type="submit" >add invoice</button>
-
-</form>
-
-<form action="{{route('devis_form_client')}}" method="POST"  >
-    @csrf
-    <button class="btn btn-success col-2 mx-2" type="submit" >add quote</button>
-  
-  </form>
 
 @endif
+@endsection
+
+
+@section('contenu')
+
 
 
 
@@ -59,19 +44,37 @@
     @else
         <h2>Clients</h2>
         <div class="row" id="clientResults">
-            @foreach($clients as $client)
-                <div class="col-md-4">
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ $client->name }}</h5>
-                            <p class="card-text">Address: {{ $client->address }}</p>
-                            <p class="card-text">Tel: {{ $client->tel }}</p>
-                            <a href="{{route('list_client_invoice',['id'=>$client->id])}}" class="btn btn-primary">View Invoices</a>
-                            <a href="{{route('list_client_devis',['id'=>$client->id])}}" class="btn btn-primary">View Quotes</a>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
+            <div class="table-responsive scrollbar">
+                <table class="table table-hover table-striped overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Address</th>
+                            <th class="text-end" scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($clients as $client)
+                            <tr class="align-middle">
+                                <td class="text-nowrap">
+                                    <div class="d-flex align-items-center">
+                                       
+                                        <div class="ms-2">{{ $client->name }}</div>
+                                    </div>
+                                </td>
+                                <td class="text-nowrap">{{ $client->tel }}</td>
+                                <td class="text-nowrap">{{ $client->address }}</td>
+                                <td class="text-end">
+                                    <a href="{{ route('list_client_invoice', ['id' => $client->id]) }}" class="btn btn-primary btn-sm">View Invoices</a>
+                                    <a href="{{ route('list_client_devis', ['id' => $client->id]) }}" class="btn btn-primary btn-sm">View Quotes</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            
         </div>
     @endif
 </div>
@@ -108,22 +111,37 @@
                     },
                     success: function(response) {
                         if (response.clients && response.clients.length > 0) {
-                            let resultsHtml = '';
+                            let resultsHtml =  `
+                            <div class="table-responsive scrollbar">
+                                <table class="table table-hover table-striped overflow-hidden">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Address</th>
+                                            <th class="text-end" scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
                             response.clients.forEach(client => {
                                 resultsHtml += `
-                                    <div class="col-md-4">
-                                        <div class="card mb-4">
-                                            <div class="card-body">
-                                                <h5 class="card-title">${client.name}</h5>
-                                                <p class="card-text">Address: ${client.address}</p>
-                                                <p class="card-text">Tel: ${client.tel}</p>
-                                                <a href="/list-client-invoice/${client.id}" class="btn btn-primary">View Invoices</a>
-                                                 <a href="/list_client_devis/${client.id}" class="btn btn-primary">View Quotes</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
+                                <tr class="align-middle">
+                                    <td class="text-nowrap">${client.name}</td>
+                                    <td class="text-nowrap">${client.tel}</td>
+                                    <td class="text-nowrap">${client.address}</td>
+                                    <td class="text-end">
+                                        <a href="/list_client_invoice/${client.id}" class="btn btn-primary btn-sm">View Invoices</a>
+                                        <a href="/list_client_devis/${client.id}" class="btn btn-primary btn-sm">View Quotes</a>
+                                    </td>
+                                </tr>
+                            `;
                             });
+                            resultsHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
                             clientResults.innerHTML = resultsHtml;  
                         } else {
                             clientResults.innerHTML = '<p>No clients found.</p>';  
@@ -136,6 +154,54 @@
                 });
             });
         }
+
+        
+        $(document).on('click', '.btn-mark-paid', function() {
+       
+       var invoiceId = $(this).data('id');
+
+
+       $('#paymentForm').on('submit', function(event) {
+          var     date=$('#payment_date').val()
+           event.preventDefault(); // Prevent default form submission
+   var formData = {
+                 id: invoiceId,
+                date: date,
+
+                _token: '{{ csrf_token() }}'
+                     };
+                     $.ajax({
+       url: "{{ route('paye_change_client') }}", // Adjust the route as necessary
+       method: 'POST',
+       data: formData,
+       success: function(response) {   
+           var paymentDate = response.paymentDate;  
+           $('#paymentModal').modal('hide');
+           $('.modal-backdrop').remove(); 
+           var updatedRow = ` <td class="text-nowrap">
+                            paid (${paymentDate})
+                     </td>`;
+
+               $(`td[data-id="sent-${invoiceId}"]`).replaceWith(updatedRow);
+       },
+       error: function(xhr) {
+           console.log(xhr.responseText);
+       }
+   });      
+});
+
+document.querySelector('body').addEventListener('hidden.bs.modal', (event) => {
+
+document.querySelector('body').removeAttribute('style');
+});    
+
+});
+
+
+
+
+
+
     });
 
     function fetchInvoices(filter) {

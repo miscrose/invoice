@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->date('date');
             $table->date('due_date');
-
+            $table->date('payment_date')->nullable();
             $table->foreignId('companyinfo_id');
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
-            $table->string('status')->default('unpaid');
+            $table->string('status');
             $table->timestamps();
         });
     }

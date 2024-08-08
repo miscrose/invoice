@@ -1,18 +1,48 @@
-@foreach($devis as $item)
-    <div class="col-md-3">
-        <div class="card mb-4">
-            <div class="card-body">
-                <h5 class="card-title">devis #  @if ($item->type==='sent')
-                       {{$item->devis_number }} 
+
+
+<div class="table-responsive scrollbar">
+  <table class="table table-hover table-striped overflow-hidden">
+    <thead>
+      <tr>
+        <th scope="col">Devis Number</th>
+        <th scope="col">Date</th>
+        <th scope="col">Type</th>
+        <th class="text-end" scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach($devis as $item)
+        <tr class="align-middle">
+          <td class="text-nowrap">
+            @if ($item->type === 'sent')
+               {{ $item->devis_number }}
+            @else
+                    {{ $item->id }}
+            @endif
+          </td>
+          <td class="text-nowrap">{{ $item->date }}</td>
+          <td class="text-nowrap">
+            @if ($item->type === 'sent')
+              @if (Auth::user()->usertype==='admin')
+                  received
+              @else
+                 sent 
+              @endif
+            @else
+                    @if (Auth::user()->usertype==='admin')
+                    sent 
                 @else
-                      {{$item->id}}
-                @endif  
-            </h5>
-                <p class="card-text">Date: {{ $item->date }}</p>
-            
-             
-                <a href="{{ route('detail_devis', ['type'=>$item->type,'id' => $item->id]) }}" class="btn btn-primary">View Details</a>
-            </div>
-        </div>
-    </div>
-@endforeach
+                   received
+                @endif
+            @endif
+          </td>
+          <td class="text-end">
+            <form action="{{ route('detail_devis', ['type' => $item->type, 'id' => $item->id]) }}" method="POST" style="display: inline;">
+              @csrf
+              <button type="submit" class="btn btn-primary btn-sm">View Details</button>
+          </form>         </td>
+        </tr>
+      @endforeach
+    </tbody>
+  </table>
+</div>
