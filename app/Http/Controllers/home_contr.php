@@ -149,10 +149,65 @@ class home_contr extends Controller
 
     public function dashboard()
     {
-      
+       $invoice_count=$this->invoice_count();
+       return view('dashboard', compact('invoice_count'));
     
 }
 
+public function invoice_count()
+{
+    $invoices = $this->trimestre_data('invoices');
+
+    // Regrouper par année et trimestre et compter les invoices
+    $invoiceCount = $invoices->groupBy(['year', 'quarter'])->map(function ($group) {
+        return $group->count();
+    });
+
+    // Initialiser les tableaux pour les labels et les valeurs
+    $labels = [];
+    $values = [];
+
+    // Assurer que $invoiceCount est un tableau de données correct
+    foreach ($invoiceCount as $key => $count) {
+        // $key est une clé d'un tableau associatif, pas un entier
+        if (is_array($key)) {
+            $labels[] = "{$key['quarter']} {$key['year']}";
+            $values[] = $count;
+        }
+    }
+
+    // Créer le graphique
+    $chart = (new LarapexChart)->barChart()
+        ->setTitle('Nombre de Factures par Trimestre')
+        ->setSubtitle('Répartition trimestrielle des factures')
+        ->dataset('Nombre de Factures', $values)
+        ->setXAxis($labels);
+
+    return $chart;
+}
+
+
+public function trimestre_data($table)
+{
+    
+    $invoices = DB::table($table)
+        ->select(DB::raw(
+            "strftime('%Y', created_at) as year,
+            CASE
+                WHEN strftime('%m', created_at) IN ('01', '02', '03') THEN 'Q1'
+                WHEN strftime('%m', created_at) IN ('04', '05', '06') THEN 'Q2'
+                WHEN strftime('%m', created_at) IN ('07', '08', '09') THEN 'Q3'
+                WHEN strftime('%m', created_at) IN ('10', '11', '12') THEN 'Q4'
+            END as quarter,
+            *
+            "
+        ))
+        ->orderBy('year')
+        ->orderBy('quarter')
+        ->get();
+
+    return $invoices;
+}
 
 
     function test(){
